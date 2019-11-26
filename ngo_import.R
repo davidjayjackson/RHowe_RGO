@@ -7,6 +7,7 @@ library(ggplot2)
 library(lubridate)
 library(tidyverse)
 library(RSQLite)
+library(plotly)
 rm(list=ls())
 ##
 # Mainly for 1874 - 1981
@@ -76,12 +77,10 @@ RGO$Ymd <- as.Date(paste(RGO$Year, RGO$Month, RGO$Day, sep = "-"))
 RGO <- RGO %>% select(Ymd,Year,Month,Day,cwsa,lns,cld)
 ##
 ## Plot of cwsa,lns, and cld variables
-ggplot(data=RGO,aes(x=Ymd,y=cwsa)) + geom_line() +ggtitle("Corrected Whole Spot Area ")
-ggplot(data=RGO,aes(x=Ymd,y=lns)) + geom_line() +ggtitle("Latitude, South(-) and North(+)")
-ggplot(data=RGO,aes(x=Ymd,y=cld)) + geom_line() + ggtitle("Carrington Longitude in degrees")
-## Add North/South Field
-
-
+plot_ly(x=RGO$Ymd, y=RGO$cwsa, mode ='lines') # Corrected Whole Spot Area 
+plot_ly(x=RGO$Ymd,y=RGO$lns,mode="lines") # Latitude, South(-) and North(+)
+plot_ly(x=RGO$Ymd,y=RGO$cld,mode="lines") # Carrington Longitude in degrees
+##
 ## Create Noth/South Split
 ##
 RGO$NS <- ifelse(RGO$lns >=0,"N","S")
@@ -107,8 +106,8 @@ db <- dbConnect(SQLite(),dbname="RGO.sqlite3")
 dbWriteTable(db,"sunspot",RGO,row.names=FALSE,overwrite=TRUE)
 dbListTables(db)
 ##
-
-
+## Plot_ly plots
+plot_ly(x =RGO$Ymd, y=RGO$cwsa, mode = 'lines') +ggtitle("Corrected Whole Spot Area ")
 
 
 
