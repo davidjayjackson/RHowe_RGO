@@ -97,22 +97,19 @@ colnames(south) <- c("Ymd","scwsa","slns","scld")
 RGOC <- merge(north,south,key=Ymd)
 ## If you want to inlcude all of North and matching South
 RGOC1 <- merge(north,south,key=Ymd,all.x=T)
-
+RGOC1$Ymd <- as.Date(RGOC1$Ymd)
 ##
 ## Create and insert data in sqlite3 db.
 ##
-RGO$Ymd <- as.character(RGO$Ymd)
+RGOC1$Ymd <- as.character(RGOC1$Ymd)
 db <- dbConnect(SQLite(),dbname="RGO.sqlite3")
-dbWriteTable(db,"sunspot",RGO,row.names=FALSE,overwrite=TRUE)
+dbWriteTable(db,"rgoc1",RGOC1,row.names=FALSE,overwrite=TRUE)
 dbListTables(db)
+dbDisconnect(db)
 ##
-## Plot_ly plots
-plot_ly(x =RGO$Ymd, y=RGO$cwsa, mode = 'lines') +ggtitle("Corrected Whole Spot Area ")
-
-
-
-
-
+report_RGOC1 <- RGOC1 %>% arrange(Ymd) %>% 
+  select(Ymd,ncwsa,scwsa,nlns,slns,ncld,scld) %>%
+  summarise(Cnt = n_distinct(Ymd, na.rm = TRUE)) %>% group_by(Ymd)
 
 
 
