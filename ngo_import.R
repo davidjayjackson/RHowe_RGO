@@ -5,7 +5,10 @@
 library(data.table)
 library(ggplot2)
 library(lubridate)
-library(tidyverse)
+# library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(purrr)
 library(RSQLite)
 library(plotly)
 rm(list=ls())
@@ -75,12 +78,6 @@ str(rgo_2)
 RGO <- rbind(rgo_1,rgo_2)
 RGO$Ymd <- as.Date(paste(RGO$Year, RGO$Month, RGO$Day, sep = "-"))
 RGO <- RGO %>% select(Ymd,Year,Month,Day,cwsa,lns,cld)
-##
-## Plot of cwsa,lns, and cld variables
-plot_ly(x=RGO$Ymd, y=RGO$cwsa, mode ='lines') # Corrected Whole Spot Area 
-plot_ly(x=RGO$Ymd,y=RGO$lns,mode="lines") # Latitude, South(-) and North(+)
-plot_ly(x=RGO$Ymd,y=RGO$cld,mode="lines") # Carrington Longitude in degrees
-##
 ## Create Noth/South Split
 ##
 RGO$NS <- ifelse(RGO$lns >=0,"N","S")
@@ -91,6 +88,14 @@ colnames(north) <- c("Ymd","ncwsa","nlns","ncld")
 south <- RGO %>% select(Ymd,cwsa,lns,cld) %>% 
   filter(!is.na(cwsa)  & lns <=0)
 colnames(south) <- c("Ymd","scwsa","slns","scld")
+##
+## Plot of cwsa,lns, and cld variables
+plot_ly(RGO,x=~Ymd, y=~cwsa,type='bar') # Rodney's Bar Chart
+plot_ly(RGO,x=~Ymd, y=~cwsa, mode ='lines') # Corrected Whole Spot Area 
+plot_ly(RGO.x=~Ymd,y=~lns,mode="lines") # Latitude, South(-) and North(+)
+plot_ly(RGO,x=~Ymd,y=~cld,mode="lines") # Carrington Longitude in degrees
+##
+
 ##
 ## combine north and south
 ##
@@ -107,11 +112,12 @@ dbWriteTable(db,"rgoc1",RGOC1,row.names=FALSE,overwrite=TRUE)
 dbListTables(db)
 dbDisconnect(db)
 ##
-report_RGOC1 <- RGOC1 %>% arrange(Ymd) %>% 
-  select(Ymd,ncwsa,scwsa,nlns,slns,ncld,scld) %>%
-  summarise(Cnt = n_distinct(Ymd, na.rm = TRUE)) %>% group_by(Ymd)
+report_RGO <- RGO %>% arrange(Ymd) %>% 
+  select(Ymd,cwsa,cwsa,lns,lns,cld,cld) %>%
+  group_by(Ymd) %>% summarise(Cnt = n())
 
-
+ggplot(data=north,aes(x=Ymd,y=nlns,col="blue")) + geom_line() +
+  geom_line(data=south,aes(x=Ymd,y=slns,col="red"))
 
 
 
