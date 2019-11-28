@@ -81,6 +81,7 @@ rgo_2 <- rgo_2[,.(Year,Month,Day,csgcgt,cwsa,lns,cld)]
 RGO <- rbind(rgo_1,rgo_2)
 RGO$Ymd <- as.Date(paste(RGO$Year, RGO$Month, RGO$Day, sep = "-"))
 RGO <- RGO %>% select(Ymd,Year,Month,Day,csgcgt,cwsa,lns,cld)
+str(RGO)
 ## Create Noth/South Split
 ##
 RGO$NS <- ifelse(RGO$lns >=0,"N","S")
@@ -125,8 +126,8 @@ dbListTables(db)
 dbDisconnect(db)
 ##
 report_RGO <- RGO %>% arrange(Ymd) %>% 
-  select(Ymd,cwsa,cwsa,lns,lns,cld,cld) %>%
-  group_by(Ymd) %>% summarise(Cnt = n())
+  select(Ymd,csgcgt,cwsa,lns,cld) %>%
+  group_by(Ymd,csgcgt) %>% summarise(Cnt = n())
 
 ggplot(data=north,aes(x=Ymd,y=nlns,col="blue")) + geom_line() +
   geom_line(data=south,aes(x=Ymd,y=slns,col="red"))
