@@ -1,6 +1,6 @@
 ## Author: David Jackson (davidjayjackon@gmail.com)
 ## Date Created: Nov. 26,2019
-## Last update: 2019/11/26(DJJ)
+## Last update: 2019/11/27(DJJ)
 ##
 library(data.table)
 library(ggplot2)
@@ -89,13 +89,6 @@ south <- RGO %>% select(Ymd,cwsa,lns,cld) %>%
   filter(!is.na(cwsa)  & lns <=0)
 colnames(south) <- c("Ymd","scwsa","slns","scld")
 ##
-## Plot of cwsa,lns, and cld variables
-plot_ly(RGO,x=~Ymd, y=~cwsa,type='bar') # Rodney's Bar Chart
-plot_ly(RGO,x=~Ymd, y=~cwsa, mode ='lines') # Corrected Whole Spot Area 
-plot_ly(RGO.x=~Ymd,y=~lns,mode="lines") # Latitude, South(-) and North(+)
-plot_ly(RGO,x=~Ymd,y=~cld,mode="lines") # Carrington Longitude in degrees
-##
-
 ##
 ## combine north and south
 ##
@@ -103,6 +96,28 @@ RGOC <- merge(north,south,key=Ymd)
 ## If you want to inlcude all of North and matching South
 RGOC1 <- merge(north,south,key=Ymd,all.x=T)
 RGOC1$Ymd <- as.Date(RGOC1$Ymd)
+##
+##
+## combine north and south
+##
+RGOC <- merge(north,south,key=Ymd)
+## If you want to inlcude all of North and matching South
+RGOC1 <- merge(north,south,key=Ymd,all.x=T)
+RGOC1$Ymd <- as.Date(RGOC1$Ymd)
+## Plot of cwsa,lns, and cld variables
+##
+plot_ly(RGO) %>% add_bars(x=~Ymd,y=~cwsa) %>% 
+  layout(title="Rodney's Bar Chart")#
+plot_ly(RGO) %>% add_lines(x=~Ymd,y=~cwsa) %>% 
+  layout(title="Corrected Whole Spot Area")
+#
+plot_ly(RGO) %>% add_lines(x=~Ymd,y=~lns) %>% 
+  layout(title="Latitude, South(-) and North(+)")
+#
+plot_ly(RGO) %>% add_lines(x=~Ymd,y=~cld) %>% 
+  layout(title="Carrington Longitude in degrees")
+##
+
 ##
 ## Create and insert data in sqlite3 db.
 ##
