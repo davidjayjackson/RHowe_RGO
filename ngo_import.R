@@ -1,6 +1,6 @@
 ## Author: David Jackson (davidjayjackon@gmail.com)
 ## Date Created: Nov. 26,2019
-## Last update: 2019/11/27(DJJ)
+## Last update: 2019/11/28(DJJ)
 ##
 library(data.table)
 library(ggplot2)
@@ -34,12 +34,13 @@ rgo_1$cld <-substr(rgo_1$V1,58,62)
 rgo_1$lns <-substr(rgo_1$V1,64,68)
 rgo_1$pahn <-substr(rgo_1$V1,72,75)
 ##
-rgo_1 <- rgo_1[,.(Year,Month,Day,cwsa,lns,cld)]
+rgo_1 <- rgo_1[,.(Year,Month,Day,csgcgt,cwsa,lns,cld)]
 ##
 rgo_1$Year <- as.integer(rgo_1$Year)
 rgo_1$Month <- as.integer(rgo_1$Month)
 rgo_1$Day <- as.integer(rgo_1$Day)
 rgo_1$cwsa <- as.integer(rgo_1$cwsa)
+rgo_1$csgcgt   <- as.integer(rgo_1$csgcgt)
 rgo_1$lns <- as.numeric(rgo_1$lns)
 rgo_1$cld <- as.numeric(rgo_1$cld)
 str(rgo_1)
@@ -52,6 +53,7 @@ rgo_2$Month <-substr(rgo_2$V1,5,6)
 rgo_2$Day <-substr(rgo_2$V1,7,8)
 rgo_2$Time <-substr(rgo_2$V1,9,12)
 rgo_2$csgcgt <-substr(rgo_2$V1,13,20)
+rgo_2$csgcgt   <- as.integer(rgo_2$csgcgt)
 rgo_2$X1 <-substr(rgo_2$V1,21,22)
 rgo_2$noaa <-substr(rgo_2$V1,23,24)
 rgo_2$X2 <-substr(rgo_2$V1,25,25)
@@ -65,7 +67,7 @@ rgo_2$cld <-substr(rgo_2$V1,58,62)
 rgo_2$lns <-substr(rgo_2$V1,64,68)
 rgo_2$pahn <-substr(rgo_2$V1,72,75)
 ##
-rgo_2 <- rgo_2[,.(Year,Month,Day,cwsa,lns,cld)]
+
 rgo_2$Year <- as.integer(rgo_2$Year)
 rgo_2$Month <- as.integer(rgo_2$Month)
 rgo_2$Day <- as.integer(rgo_2$Day)
@@ -74,10 +76,11 @@ rgo_2$lns <- as.numeric(rgo_2$lns)
 rgo_2$cld <- as.numeric(rgo_2$cld)
 str(rgo_2)
 ##
+rgo_2 <- rgo_2[,.(Year,Month,Day,csgcgt,cwsa,lns,cld)]
 ##  Combine rgo_1 and rgo_2
 RGO <- rbind(rgo_1,rgo_2)
 RGO$Ymd <- as.Date(paste(RGO$Year, RGO$Month, RGO$Day, sep = "-"))
-RGO <- RGO %>% select(Ymd,Year,Month,Day,cwsa,lns,cld)
+RGO <- RGO %>% select(Ymd,Year,Month,Day,csgcgt,cwsa,lns,cld)
 ## Create Noth/South Split
 ##
 RGO$NS <- ifelse(RGO$lns >=0,"N","S")
@@ -93,17 +96,11 @@ colnames(south) <- c("Ymd","scwsa","slns","scld")
 ## combine north and south
 ##
 RGOC <- merge(north,south,key=Ymd)
+RGOC$Ymd <- as.Date(RGOC$Ymd)
 ## If you want to inlcude all of North and matching South
 RGOC1 <- merge(north,south,key=Ymd,all.x=T)
 RGOC1$Ymd <- as.Date(RGOC1$Ymd)
 ##
-##
-## combine north and south
-##
-RGOC <- merge(north,south,key=Ymd)
-## If you want to inlcude all of North and matching South
-RGOC1 <- merge(north,south,key=Ymd,all.x=T)
-RGOC1$Ymd <- as.Date(RGOC1$Ymd)
 ## Plot of cwsa,lns, and cld variables
 ##
 plot_ly(RGO) %>% add_bars(x=~Ymd,y=~cwsa) %>% 
@@ -133,8 +130,11 @@ report_RGO <- RGO %>% arrange(Ymd) %>%
 
 ggplot(data=north,aes(x=Ymd,y=nlns,col="blue")) + geom_line() +
   geom_line(data=south,aes(x=Ymd,y=slns,col="red"))
-
-
+            
+A <- RGOC %>% filter(Ymd >="2008-01-01" & Ymd <="2014-01-01")            
+plot_ly(A,x=~Ymd,y=~ncwsa,type="bar",name="North") %>%
+  add_trace(y=~scwsa,name="South") %>%
+  layout(yaxis=list(title="Count",barmode="group"))
 
 
 
